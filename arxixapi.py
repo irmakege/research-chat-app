@@ -3,6 +3,7 @@ import feedparser
 from utilities import clean_text
 import os
 import requests
+import PyPDF2
 
 class ArxivAPI():
     def __init__(self):
@@ -18,30 +19,30 @@ class ArxivAPI():
 
         response_dict = {}
         feed = feedparser.parse(response)
-
+        print(feed)
         for entry in feed.entries:
             response_dict[entry.id.split('/abs/')[-1]] = {'title': clean_text(entry.title),
                                                           'authors': clean_text(entry.author),
                                                           'summary': clean_text(entry.summary),
                                                           'published': entry.published,
                                                           'link': entry.link,
+                                                          'downloadlink': entry.links[-1]['href'],
                                                           'id': entry.id.split('/abs/')[-1]}    
         
         
         return response_dict
 
     def downloadPaper(self, response_dict):
-        
-        pdf_link = response_dict[list(response_dict.keys())[0]]["link"]
 
-        save_path = 'downloaded_paper.pdf'
+        pdf_link = response_dict[list(response_dict.keys())[0]]['downloadlink']
 
+        save_path = 'paper1.pdf'
+        print(pdf_link)
         response = requests.get(pdf_link)
 
         if response.status_code == 200:
             with open(save_path, 'wb') as file:
                 file.write(response.content)
-            print(f"Downloaded PDF to {save_path}")
         else:
             print(f"Failed to download PDF. Status code: {response.status_code}")
         
